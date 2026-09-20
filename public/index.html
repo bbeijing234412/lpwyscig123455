@@ -374,7 +374,7 @@ function render(payload) {
           <span>${escapeHtml(p.nickname)}</span>
           <span class="chevron">▾</span>
         </button>
-        ${p.inGame ? '<span class="live-badge">● NA MECZU</span>' : ''}
+        ${p.inGame ? '<span class="live-badge">● W MECZU</span>' : ''}
         <div class="riot-id">${escapeHtml(p.riotId || "")}</div>
       </div>
       <div class="wl">${p.wins ?? 0}W – ${p.losses ?? 0}P</div>
