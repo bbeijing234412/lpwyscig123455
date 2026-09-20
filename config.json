@@ -83,6 +83,13 @@
       "tagLine": "EUNE",
       "region": "europe",
       "platform": "eun1"
+    },
+    {
+      "nickname": "stolin",
+      "gameName": "PoliceDogePD",
+      "tagLine": "EUNE",
+      "region": "europe",
+      "platform": "eun1"
     }
   ]
 }
