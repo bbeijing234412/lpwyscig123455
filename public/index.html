@@ -8,146 +8,194 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0b0e14;
-    --bg-track: #11151f;
-    --panel: #151a26;
-    --line: #262e42;
-    --ink: #eef1f8;
-    --ink-dim: #8992ab;
-    --ink-faint: #565f78;
-    --finish: #f2c14e;
-    --danger: #e0526a;
+:root {
+  --bg: #0b0e14;
+  --road: #23262f;
+  --road-edge: #14161c;
+  --panel: #151a26;
+  --line: #262e42;
+  --ink: #eef1f8;
+  --ink-dim: #8992ab;
+  --ink-faint: #565f78;
+  --finish: #f2c14e;
+  --danger: #e0526a;
+  --tier-unranked: #5c6478;
+  --tier-iron: #6b6360;
+  --tier-bronze: #ab7644;
+  --tier-silver: #aab5c0;
+  --tier-gold: #e0ac1f;
+  --tier-platinum: #3fcdb2;
+  --tier-emerald: #27c67a;
+  --tier-diamond: #57b3ec;
+  --tier-master: #b073f7;
+  --tier-grandmaster: #ef5b6d;
+  --tier-challenger: #f7d774;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: var(--bg); }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink);
+  padding: 28px 20px 60px;
+}
+.wrap { max-width: 900px; margin: 0 auto; }
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+h1 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  margin: 0;
+}
+h1 .flag { color: var(--finish); }
+.status { font-size: 12px; color: var(--ink-faint); }
+.status.stale { color: var(--danger); }
+.finish-banner {
+  position: relative;
+  text-align: center;
+  padding: 8px 0;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-image: repeating-conic-gradient(#eef1f8 0% 25%, #0b0e14 0% 50%);
+  background-size: 16px 16px;
+}
+.finish-banner span {
+  background: var(--bg);
+  color: var(--finish);
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 4px 16px;
+  border-radius: 5px;
+  display: inline-block;
+}
+.lanes { display: flex; flex-direction: column; gap: 14px; }
+.lane {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px 14px;
+}
+.lane-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.rank-num {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink-faint);
+  width: 22px;
+  flex-shrink: 0;
+}
+.lane:first-child .rank-num { color: var(--finish); }
+.name-block {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+  line-height: 1.25;
+}
+.nickname { font-weight: 600; font-size: 15px; }
+.riot-id { font-size: 11px; color: var(--ink-faint); }
+.stat {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 12px;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+.wl { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
 
-    --tier-unranked: #3a4257;
-    --tier-iron: #5b5551;
-    --tier-bronze: #9a6a3f;
-    --tier-silver: #9aa7b3;
-    --tier-gold: #d4a017;
-    --tier-platinum: #35b6a0;
-    --tier-emerald: #22b06e;
-    --tier-diamond: #4aa3e0;
-    --tier-master: #a15ff0;
-    --tier-grandmaster: #e34d5d;
-    --tier-challenger: #f2c14e;
-  }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; background: var(--bg); }
-  body {
-    font-family: 'Inter', system-ui, sans-serif;
-    color: var(--ink);
-    padding: 28px 20px 60px;
-  }
-  .wrap { max-width: 880px; margin: 0 auto; }
+/* live-game badge */
+.live-badge {
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--danger);
+  animation: livePulse 1s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
 
-  header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-  }
-  h1 {
-    font-family: 'Chakra Petch', sans-serif;
-    font-weight: 700;
-    font-size: 30px;
-    margin: 0;
-  }
-  h1 .flag { color: var(--finish); }
-  .status {
-    font-size: 12px;
-    color: var(--ink-faint);
-  }
-  .status.stale { color: var(--danger); }
+/* --- the track itself --- */
+.track {
+  position: relative;
+  height: 46px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--road);
+  border: 1px solid var(--road-edge);
+  box-shadow: inset 0 0 0 4px var(--road-edge);
+}
+.track::before {
+  /* dashed center line, road-marking style */
+  content: "";
+  position: absolute;
+  top: 50%; left: 4px; right: 18px;
+  height: 3px;
+  transform: translateY(-50%);
+  background-image: repeating-linear-gradient(90deg, var(--finish) 0 16px, transparent 16px 30px);
+  opacity: 0.55;
+  border-radius: 2px;
+}
+.finish-flag {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 16px;
+  background-image: repeating-conic-gradient(#0b0e14 0% 25%, #eef1f8 0% 50%);
+  background-size: 8px 8px;
+  border-left: 1px solid var(--road-edge);
+}
+.track-car {
+  position: absolute;
+  top: 50%;
+  width: 54px;
+  height: 26px;
+  transform: translate(0, -50%);
+  transition: left 0.9s cubic-bezier(.2,.8,.2,1);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.45));
+}
+.track-car svg { width: 100%; height: 100%; display: block; }
+.track-car::before {
+  /* motion streaks trailing behind the car */
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: 22px;
+  height: 2px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, transparent, var(--ink-faint) 70%);
+  opacity: 0.5;
+}
+/* live-game car animation — subtle wobble to read as "actively racing" */
+.track-car.live {
+  animation: liveWobble 0.55s ease-in-out infinite;
+}
+@keyframes liveWobble {
+  0%, 100% { transform: translate(0, -50%); }
+  50%      { transform: translate(3px, -52%) rotate(-1.5deg); }
+}
 
-  .finish-line {
-    text-align: right;
-    color: var(--ink-faint);
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    padding: 18px 4px 8px;
-  }
-
-  .lanes { display: flex; flex-direction: column; gap: 10px; }
-
-  .lane {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 12px 14px;
-  }
-  .lane-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-  }
-  .rank-num {
-    font-family: 'Chakra Petch', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--ink-faint);
-    width: 22px;
-    flex-shrink: 0;
-  }
-  .lane:first-child .rank-num { color: var(--finish); }
-  .avatar {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Chakra Petch', sans-serif;
-    font-weight: 600;
-    font-size: 12px;
-    color: #0b0e14;
-    flex-shrink: 0;
-  }
-  .name-block {
-    display: flex;
-    flex-direction: column;
-    margin-right: auto;
-    line-height: 1.25;
-  }
-  .nickname { font-weight: 600; font-size: 15px; }
-  .riot-id { font-size: 11px; color: var(--ink-faint); }
-  .stat {
-    font-family: 'Chakra Petch', sans-serif;
-    font-size: 12px;
-    color: var(--ink-dim);
-    white-space: nowrap;
-  }
-  .wl { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
-
-  .track {
-    position: relative;
-    height: 14px;
-    background: var(--bg-track);
-    border-radius: 7px;
-    overflow: hidden;
-  }
-  .track-fill {
-    position: absolute; top: 0; left: 0; bottom: 0;
-    border-radius: 7px;
-    opacity: 0.35;
-    transition: width 0.9s cubic-bezier(.2,.8,.2,1);
-  }
-  .track-marker {
-    position: absolute; top: 50%;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    border: 2px solid var(--panel);
-    transform: translate(-50%, -50%);
-    transition: left 0.9s cubic-bezier(.2,.8,.2,1);
-  }
-
-  .empty {
-    text-align: center;
-    padding: 50px 20px;
-    color: var(--ink-faint);
-    border: 1px dashed var(--line);
-    border-radius: 12px;
-  }
+.empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--ink-faint);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
 </style>
 </head>
 <body>
@@ -157,8 +205,10 @@
     <div class="status" id="status">Ładowanie…</div>
   </header>
 
-  <div class="finish-line">— CHALLENGER —</div>
+  <div class="finish-banner"><span>META — CHALLENGER</span></div>
+
   <div class="lanes" id="lanes"></div>
+
   <div class="empty" id="emptyState" style="display:none;">
     <strong>Brak danych.</strong>
     <p>Sprawdź, czy serwer działa i czy config.json zawiera prawidłowe konta Riot.</p>
@@ -166,109 +216,127 @@
 </div>
 
 <script>
-  const TIERS = {
-    UNRANKED: { label: "Bez rangi", base: -400, color: "var(--tier-unranked)", hasDiv: false },
-    IRON: { label: "Żelazo", base: 0, color: "var(--tier-iron)", hasDiv: true },
-    BRONZE: { label: "Brąz", base: 400, color: "var(--tier-bronze)", hasDiv: true },
-    SILVER: { label: "Srebro", base: 800, color: "var(--tier-silver)", hasDiv: true },
-    GOLD: { label: "Złoto", base: 1200, color: "var(--tier-gold)", hasDiv: true },
-    PLATINUM: { label: "Platyna", base: 1600, color: "var(--tier-platinum)", hasDiv: true },
-    EMERALD: { label: "Szmaragd", base: 2000, color: "var(--tier-emerald)", hasDiv: true },
-    DIAMOND: { label: "Diament", base: 2400, color: "var(--tier-diamond)", hasDiv: true },
-    MASTER: { label: "Mistrz", base: 2800, color: "var(--tier-master)", hasDiv: false },
-    GRANDMASTER: { label: "Wielki Mistrz", base: 3200, color: "var(--tier-grandmaster)", hasDiv: false },
-    CHALLENGER: { label: "Challenger", base: 3600, color: "var(--tier-challenger)", hasDiv: false },
-    ERROR: { label: "Błąd", base: -800, color: "var(--danger)", hasDiv: false }
-  };
-  const DIV_VAL = { IV: 0, III: 100, II: 200, I: 300 };
+const TIERS = {
+  UNRANKED:     { label: "Bez rangi",     base: -400, color: "var(--tier-unranked)",     hasDiv: false },
+  IRON:         { label: "Żelazo",        base: 0,    color: "var(--tier-iron)",         hasDiv: true },
+  BRONZE:       { label: "Brąz",          base: 400,  color: "var(--tier-bronze)",       hasDiv: true },
+  SILVER:       { label: "Srebro",        base: 800,  color: "var(--tier-silver)",       hasDiv: true },
+  GOLD:         { label: "Złoto",         base: 1200, color: "var(--tier-gold)",         hasDiv: true },
+  PLATINUM:     { label: "Platyna",       base: 1600, color: "var(--tier-platinum)",     hasDiv: true },
+  EMERALD:      { label: "Szmaragd",      base: 2000, color: "var(--tier-emerald)",      hasDiv: true },
+  DIAMOND:      { label: "Diament",       base: 2400, color: "var(--tier-diamond)",      hasDiv: true },
+  MASTER:       { label: "Mistrz",        base: 2800, color: "var(--tier-master)",       hasDiv: false },
+  GRANDMASTER:  { label: "Wielki Mistrz", base: 3200, color: "var(--tier-grandmaster)",  hasDiv: false },
+  CHALLENGER:   { label: "Challenger",    base: 3600, color: "var(--tier-challenger)",   hasDiv: false },
+  ERROR:        { label: "Błąd",          base: -800, color: "var(--danger)",            hasDiv: false }
+};
+const DIV_VAL = { IV: 0, III: 100, II: 200, I: 300 };
 
-  function score(p) {
+function score(p) {
+  const t = TIERS[p.tier] || TIERS.UNRANKED;
+  if (t.hasDiv) {
+    return t.base + (DIV_VAL[p.division] || 0) + Math.max(0, Math.min(100, p.lp));
+  }
+  return t.base + Math.max(0, p.lp || 0);
+}
+
+function carSvg(color) {
+  return `
+    <svg viewBox="0 0 60 28" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="30" cy="24.5" rx="26" ry="2.5" fill="#000" opacity="0.35"/>
+      <rect x="2" y="9" width="6" height="6" rx="1.5" fill="${color}"/>
+      <path d="M6 18 L10 9 Q14 4 22 4 L36 4 Q43 4 47 9 L54 15 L54 19 Z" fill="${color}"/>
+      <path d="M15 9 L20 5.5 H34 L40 9 Z" fill="#0b0e14" opacity="0.55"/>
+      <rect x="4" y="16" width="52" height="6" rx="3" fill="${color}"/>
+      <circle cx="15" cy="22" r="5.5" fill="#0b0e14"/>
+      <circle cx="15" cy="22" r="2.1" fill="#8992ab"/>
+      <circle cx="45" cy="22" r="5.5" fill="#0b0e14"/>
+      <circle cx="45" cy="22" r="2.1" fill="#8992ab"/>
+    </svg>
+  `;
+}
+
+const lanesEl = document.getElementById("lanes");
+const emptyEl = document.getElementById("emptyState");
+const statusEl = document.getElementById("status");
+
+function render(payload) {
+  const players = payload.players || [];
+  emptyEl.style.display = players.length ? "none" : "";
+
+  const scores = players.map(score);
+  const minScore = scores.length ? Math.min(...scores) : 0;
+  const maxScore = scores.length ? Math.max(...scores) : 1;
+  const range = Math.max(1, maxScore - minScore); // avoid divide-by-zero when everyone is tied
+
+  const sorted = [...players].sort((a, b) => score(b) - score(a));
+
+  lanesEl.innerHTML = "";
+
+  sorted.forEach((p, idx) => {
     const t = TIERS[p.tier] || TIERS.UNRANKED;
-    if (t.hasDiv) {
-      return t.base + (DIV_VAL[p.division] || 0) + Math.max(0, Math.min(100, p.lp));
+    const s = score(p);
+    // Spread cars across (almost) the full track based on how far apart
+    // they actually are from each other right now, not on an absolute
+    // ladder-wide scale. Last place sits near the start, leader near the
+    // finish flag, and the gap between any two cars reflects their real
+    // LP difference relative to the current field.
+    const pct = 4 + ((s - minScore) / range) * 88;
+
+    const lane = document.createElement("div");
+    lane.className = "lane";
+
+    const top = document.createElement("div");
+    top.className = "lane-top";
+    top.innerHTML = `
+      <div class="rank-num">#${idx + 1}</div>
+      <div class="name-block">
+        <div class="nickname">${escapeHtml(p.nickname)}${p.inGame ? '<span class="live-badge">● NA MECZU</span>' : ''}</div>
+        <div class="riot-id">${escapeHtml(p.riotId || "")}</div>
+      </div>
+      <div class="wl">${p.wins ?? 0}W – ${p.losses ?? 0}P</div>
+      <div class="stat">${t.label}${t.hasDiv ? " " + (p.division || "") : ""} · ${p.lp ?? 0} LP</div>
+    `;
+
+    const track = document.createElement("div");
+    track.className = "track";
+    track.innerHTML = `
+      <div class="finish-flag"></div>
+      <div class="track-car${p.inGame ? ' live' : ''}" style="left:calc(${pct}% - 4px)">${carSvg(t.color)}</div>
+    `;
+
+    lane.appendChild(top);
+    lane.appendChild(track);
+    lanesEl.appendChild(lane);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function refresh() {
+  try {
+    const res = await fetch('/api/lp', { cache: 'no-store' });
+    const data = await res.json();
+    render(data);
+    if (data.updatedAt) {
+      const secondsAgo = Math.round((Date.now() - new Date(data.updatedAt).getTime()) / 1000);
+      statusEl.textContent = `Zaktualizowano ${secondsAgo}s temu`;
+      statusEl.classList.toggle('stale', secondsAgo > 600);
+    } else {
+      statusEl.textContent = 'Oczekiwanie na pierwszą aktualizację…';
     }
-    return t.base + Math.max(0, p.lp || 0);
+  } catch (err) {
+    statusEl.textContent = 'Nie można połączyć się z serwerem';
+    statusEl.classList.add('stale');
   }
+}
 
-  function initials(name) {
-    return (name || "??").trim().slice(0, 2).toUpperCase();
-  }
-
-  const lanesEl = document.getElementById("lanes");
-  const emptyEl = document.getElementById("emptyState");
-  const statusEl = document.getElementById("status");
-
-  function render(payload) {
-    const players = payload.players || [];
-    emptyEl.style.display = players.length ? "none" : "";
-
-    const scores = players.map(score);
-    const highest = scores.length ? Math.max(...scores) : 0;
-    const max = Math.max(3800, highest + 200);
-
-    const sorted = [...players].sort((a, b) => score(b) - score(a));
-
-    lanesEl.innerHTML = "";
-    sorted.forEach((p, idx) => {
-      const t = TIERS[p.tier] || TIERS.UNRANKED;
-      const s = score(p);
-      const pct = Math.min(100, Math.max(0, (s / max) * 100));
-
-      const lane = document.createElement("div");
-      lane.className = "lane";
-
-      const top = document.createElement("div");
-      top.className = "lane-top";
-      top.innerHTML = `
-        <div class="rank-num">#${idx + 1}</div>
-        <div class="avatar" style="background:${t.color}">${initials(p.nickname)}</div>
-        <div class="name-block">
-          <div class="nickname">${escapeHtml(p.nickname)}</div>
-          <div class="riot-id">${escapeHtml(p.riotId || "")}</div>
-        </div>
-        <div class="wl">${p.wins ?? 0}W – ${p.losses ?? 0}P</div>
-        <div class="stat">${t.label}${t.hasDiv ? " " + (p.division || "") : ""} · ${p.lp ?? 0} LP</div>
-      `;
-
-      const track = document.createElement("div");
-      track.className = "track";
-      track.innerHTML = `
-        <div class="track-fill" style="width:${pct}%;background:${t.color}"></div>
-        <div class="track-marker" style="left:${pct}%;background:${t.color}"></div>
-      `;
-
-      lane.appendChild(top);
-      lane.appendChild(track);
-      lanesEl.appendChild(lane);
-    });
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  async function refresh() {
-    try {
-      const res = await fetch('/api/lp', { cache: 'no-store' });
-      const data = await res.json();
-      render(data);
-      if (data.updatedAt) {
-        const secondsAgo = Math.round((Date.now() - new Date(data.updatedAt).getTime()) / 1000);
-        statusEl.textContent = `Zaktualizowano ${secondsAgo}s temu`;
-        statusEl.classList.toggle('stale', secondsAgo > 600);
-      } else {
-        statusEl.textContent = 'Oczekiwanie na pierwszą aktualizację…';
-      }
-    } catch (err) {
-      statusEl.textContent = 'Nie można połączyć się z serwerem';
-      statusEl.classList.add('stale');
-    }
-  }
-
-  refresh();
-  setInterval(refresh, 20000);
+refresh();
+setInterval(refresh, 20000);
 </script>
 </body>
 </html>
