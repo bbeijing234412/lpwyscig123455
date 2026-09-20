@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wyścig o LP — na żywo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0e14;
+    --bg-track: #11151f;
+    --panel: #151a26;
+    --line: #262e42;
+    --ink: #eef1f8;
+    --ink-dim: #8992ab;
+    --ink-faint: #565f78;
+    --finish: #f2c14e;
+    --danger: #e0526a;
+
+    --tier-unranked: #3a4257;
+    --tier-iron: #5b5551;
+    --tier-bronze: #9a6a3f;
+    --tier-silver: #9aa7b3;
+    --tier-gold: #d4a017;
+    --tier-platinum: #35b6a0;
+    --tier-emerald: #22b06e;
+    --tier-diamond: #4aa3e0;
+    --tier-master: #a15ff0;
+    --tier-grandmaster: #e34d5d;
+    --tier-challenger: #f2c14e;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--bg); }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    padding: 28px 20px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 700;
+    font-size: 30px;
+    margin: 0;
+  }
+  h1 .flag { color: var(--finish); }
+  .status {
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+  .status.stale { color: var(--danger); }
+
+  .finish-line {
+    text-align: right;
+    color: var(--ink-faint);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 18px 4px 8px;
+  }
+
+  .lanes { display: flex; flex-direction: column; gap: 10px; }
+
+  .lane {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .lane-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .rank-num {
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink-faint);
+    width: 22px;
+    flex-shrink: 0;
+  }
+  .lane:first-child .rank-num { color: var(--finish); }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    color: #0b0e14;
+    flex-shrink: 0;
+  }
+  .name-block {
+    display: flex;
+    flex-direction: column;
+    margin-right: auto;
+    line-height: 1.25;
+  }
+  .nickname { font-weight: 600; font-size: 15px; }
+  .riot-id { font-size: 11px; color: var(--ink-faint); }
+  .stat {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 12px;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .wl { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+
+  .track {
+    position: relative;
+    height: 14px;
+    background: var(--bg-track);
+    border-radius: 7px;
+    overflow: hidden;
+  }
+  .track-fill {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    border-radius: 7px;
+    opacity: 0.35;
+    transition: width 0.9s cubic-bezier(.2,.8,.2,1);
+  }
+  .track-marker {
+    position: absolute; top: 50%;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--panel);
+    transform: translate(-50%, -50%);
+    transition: left 0.9s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--ink-faint);
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>WYŚCIG O LP <span class="flag">🏁</span></h1>
+    <div class="status" id="status">Ładowanie…</div>
+  </header>
+
+  <div class="finish-line">— CHALLENGER —</div>
+  <div class="lanes" id="lanes"></div>
+  <div class="empty" id="emptyState" style="display:none;">
+    <strong>Brak danych.</strong>
+    <p>Sprawdź, czy serwer działa i czy config.json zawiera prawidłowe konta Riot.</p>
+  </div>
+</div>
+
+<script>
+  const TIERS = {
+    UNRANKED: { label: "Bez rangi", base: -400, color: "var(--tier-unranked)", hasDiv: false },
+    IRON: { label: "Żelazo", base: 0, color: "var(--tier-iron)", hasDiv: true },
+    BRONZE: { label: "Brąz", base: 400, color: "var(--tier-bronze)", hasDiv: true },
+    SILVER: { label: "Srebro", base: 800, color: "var(--tier-silver)", hasDiv: true },
+    GOLD: { label: "Złoto", base: 1200, color: "var(--tier-gold)", hasDiv: true },
+    PLATINUM: { label: "Platyna", base: 1600, color: "var(--tier-platinum)", hasDiv: true },
+    EMERALD: { label: "Szmaragd", base: 2000, color: "var(--tier-emerald)", hasDiv: true },
+    DIAMOND: { label: "Diament", base: 2400, color: "var(--tier-diamond)", hasDiv: true },
+    MASTER: { label: "Mistrz", base: 2800, color: "var(--tier-master)", hasDiv: false },
+    GRANDMASTER: { label: "Wielki Mistrz", base: 3200, color: "var(--tier-grandmaster)", hasDiv: false },
+    CHALLENGER: { label: "Challenger", base: 3600, color: "var(--tier-challenger)", hasDiv: false },
+    ERROR: { label: "Błąd", base: -800, color: "var(--danger)", hasDiv: false }
+  };
+  const DIV_VAL = { IV: 0, III: 100, II: 200, I: 300 };
+
+  function score(p) {
+    const t = TIERS[p.tier] || TIERS.UNRANKED;
+    if (t.hasDiv) {
+      return t.base + (DIV_VAL[p.division] || 0) + Math.max(0, Math.min(100, p.lp));
+    }
+    return t.base + Math.max(0, p.lp || 0);
+  }
+
+  function initials(name) {
+    return (name || "??").trim().slice(0, 2).toUpperCase();
+  }
+
+  const lanesEl = document.getElementById("lanes");
+  const emptyEl = document.getElementById("emptyState");
+  const statusEl = document.getElementById("status");
+
+  function render(payload) {
+    const players = payload.players || [];
+    emptyEl.style.display = players.length ? "none" : "";
+
+    const scores = players.map(score);
+    const highest = scores.length ? Math.max(...scores) : 0;
+    const max = Math.max(3800, highest + 200);
+
+    const sorted = [...players].sort((a, b) => score(b) - score(a));
+
+    lanesEl.innerHTML = "";
+    sorted.forEach((p, idx) => {
+      const t = TIERS[p.tier] || TIERS.UNRANKED;
+      const s = score(p);
+      const pct = Math.min(100, Math.max(0, (s / max) * 100));
+
+      const lane = document.createElement("div");
+      lane.className = "lane";
+
+      const top = document.createElement("div");
+      top.className = "lane-top";
+      top.innerHTML = `
+        <div class="rank-num">#${idx + 1}</div>
+        <div class="avatar" style="background:${t.color}">${initials(p.nickname)}</div>
+        <div class="name-block">
+          <div class="nickname">${escapeHtml(p.nickname)}</div>
+          <div class="riot-id">${escapeHtml(p.riotId || "")}</div>
+        </div>
+        <div class="wl">${p.wins ?? 0}W – ${p.losses ?? 0}P</div>
+        <div class="stat">${t.label}${t.hasDiv ? " " + (p.division || "") : ""} · ${p.lp ?? 0} LP</div>
+      `;
+
+      const track = document.createElement("div");
+      track.className = "track";
+      track.innerHTML = `
+        <div class="track-fill" style="width:${pct}%;background:${t.color}"></div>
+        <div class="track-marker" style="left:${pct}%;background:${t.color}"></div>
+      `;
+
+      lane.appendChild(top);
+      lane.appendChild(track);
+      lanesEl.appendChild(lane);
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function refresh() {
+    try {
+      const res = await fetch('/api/lp', { cache: 'no-store' });
+      const data = await res.json();
+      render(data);
+      if (data.updatedAt) {
+        const secondsAgo = Math.round((Date.now() - new Date(data.updatedAt).getTime()) / 1000);
+        statusEl.textContent = `Zaktualizowano ${secondsAgo}s temu`;
+        statusEl.classList.toggle('stale', secondsAgo > 600);
+      } else {
+        statusEl.textContent = 'Oczekiwanie na pierwszą aktualizację…';
+      }
+    } catch (err) {
+      statusEl.textContent = 'Nie można połączyć się z serwerem';
+      statusEl.classList.add('stale');
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 20000);
+</script>
+</body>
+</html>
