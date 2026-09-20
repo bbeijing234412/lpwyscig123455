@@ -113,7 +113,25 @@ h1 .flag { color: var(--finish); }
   margin-right: auto;
   line-height: 1.25;
 }
-.nickname { font-weight: 600; font-size: 15px; }
+.nickname-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.nickname-btn:hover { color: var(--finish); }
+.nickname-btn .chevron {
+  font-size: 10px;
+  color: var(--ink-faint);
+  transition: transform 0.2s ease;
+}
 .riot-id { font-size: 11px; color: var(--ink-faint); }
 .stat {
   font-family: 'Chakra Petch', sans-serif;
@@ -122,6 +140,60 @@ h1 .flag { color: var(--finish); }
   white-space: nowrap;
 }
 .wl { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+
+/* --- expandable match history panel --- */
+.match-panel {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.35s ease;
+}
+.match-panel.open {
+  max-height: 420px;
+  opacity: 1;
+  margin-top: 10px;
+}
+.match-loading, .match-error, .match-empty {
+  font-size: 12px;
+  color: var(--ink-faint);
+  padding: 10px 2px;
+}
+.match-error { color: var(--danger); }
+.match-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+  background: rgba(255,255,255,0.02);
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+.match-row.win  { border-left-color: var(--tier-diamond); }
+.match-row.loss { border-left-color: var(--danger); }
+.champ-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: var(--road);
+}
+.match-main { display: flex; flex-direction: column; margin-right: auto; line-height: 1.3; }
+.match-result { font-weight: 700; font-size: 11px; }
+.match-row.win  .match-result { color: var(--tier-diamond); }
+.match-row.loss .match-result { color: var(--danger); }
+.match-champ { color: var(--ink-dim); font-size: 11px; }
+.match-kda {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.match-cs, .match-duration {
+  color: var(--ink-faint);
+  white-space: nowrap;
+  font-size: 11px;
+}
 
 /* live-game badge */
 .live-badge {
@@ -298,7 +370,11 @@ function render(payload) {
     top.innerHTML = `
       <div class="rank-num">#${idx + 1}</div>
       <div class="name-block">
-        <div class="nickname">${escapeHtml(p.nickname)}${p.inGame ? '<span class="live-badge">● NA MECZU</span>' : ''}</div>
+        <button class="nickname-btn" type="button" data-nickname="${encodeURIComponent(p.nickname)}">
+          <span>${escapeHtml(p.nickname)}</span>
+          <span class="chevron">▾</span>
+        </button>
+        ${p.inGame ? '<span class="live-badge">● NA MECZU</span>' : ''}
         <div class="riot-id">${escapeHtml(p.riotId || "")}</div>
       </div>
       <div class="wl">${p.wins ?? 0}W – ${p.losses ?? 0}P</div>
@@ -312,9 +388,24 @@ function render(payload) {
       <div class="track-car${p.inGame ? ' live' : ''}" style="left:calc(${pct}% - 4px)">${carSvg(t.color)}</div>
     `;
 
+    const matchPanel = document.createElement("div");
+    matchPanel.className = "match-panel" + (expandedNicknames.has(p.nickname) ? " open" : "");
+
     lane.appendChild(top);
     lane.appendChild(track);
+    lane.appendChild(matchPanel);
     lanesEl.appendChild(lane);
+  });
+
+  // The whole board re-renders every 20s to keep LP live, which wipes any
+  // open match-history panels. Re-populate (from client cache when fresh)
+  // so an open panel doesn't visibly snap shut on refresh.
+  expandedNicknames.forEach((nickname) => {
+    const btn = lanesEl.querySelector(`.nickname-btn[data-nickname="${encodeURIComponent(nickname)}"]`);
+    const panel = btn?.closest(".lane")?.querySelector(".match-panel");
+    const chevron = btn?.querySelector(".chevron");
+    if (chevron) chevron.textContent = "▴";
+    if (panel) loadMatches(nickname, panel);
   });
 }
 
@@ -323,6 +414,88 @@ function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
+
+/* --- expandable match history --- */
+const expandedNicknames = new Set();
+const matchDataCache = new Map(); // nickname -> { fetchedAt, matches }
+const MATCH_CLIENT_CACHE_MS = 4 * 60 * 1000;
+
+let ddragonVersion = null;
+async function getDdragonVersion() {
+  if (ddragonVersion) return ddragonVersion;
+  try {
+    const res = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
+    const versions = await res.json();
+    ddragonVersion = versions[0];
+  } catch {
+    ddragonVersion = '14.24.1'; // fallback if the version list can't be reached
+  }
+  return ddragonVersion;
+}
+
+function formatDuration(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+async function renderMatches(panel, matches) {
+  if (!matches || !matches.length) {
+    panel.innerHTML = '<div class="match-empty">Brak ostatnich gier rankingowych.</div>';
+    return;
+  }
+  const version = await getDdragonVersion();
+  panel.innerHTML = matches.map((m) => `
+    <div class="match-row ${m.win ? 'win' : 'loss'}">
+      <img class="champ-icon" src="https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${m.champion}.png" alt="${m.champion}" loading="lazy">
+      <div class="match-main">
+        <div class="match-result">${m.win ? 'Zwycięstwo' : 'Porażka'}</div>
+        <div class="match-champ">${escapeHtml(m.champion)}</div>
+      </div>
+      <div class="match-kda">${m.kills}/${m.deaths}/${m.assists}</div>
+      <div class="match-cs">${m.cs} CS</div>
+      <div class="match-duration">${formatDuration(m.durationSeconds)}</div>
+    </div>
+  `).join('');
+}
+
+async function loadMatches(nickname, panel) {
+  const cached = matchDataCache.get(nickname);
+  if (cached && Date.now() - cached.fetchedAt < MATCH_CLIENT_CACHE_MS) {
+    renderMatches(panel, cached.matches);
+    return;
+  }
+  panel.innerHTML = '<div class="match-loading">Ładowanie meczów…</div>';
+  try {
+    const res = await fetch(`/api/matches/${encodeURIComponent(nickname)}`);
+    if (!res.ok) throw new Error('bad response');
+    const matches = await res.json();
+    matchDataCache.set(nickname, { fetchedAt: Date.now(), matches });
+    renderMatches(panel, matches);
+  } catch (err) {
+    panel.innerHTML = '<div class="match-error">Nie udało się wczytać historii meczów.</div>';
+  }
+}
+
+lanesEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.nickname-btn');
+  if (!btn) return;
+  const nickname = decodeURIComponent(btn.dataset.nickname);
+  const lane = btn.closest('.lane');
+  const panel = lane.querySelector('.match-panel');
+  const chevron = btn.querySelector('.chevron');
+
+  if (expandedNicknames.has(nickname)) {
+    expandedNicknames.delete(nickname);
+    panel.classList.remove('open');
+    chevron.textContent = '▾';
+  } else {
+    expandedNicknames.add(nickname);
+    panel.classList.add('open');
+    chevron.textContent = '▴';
+    loadMatches(nickname, panel);
+  }
+});
 
 async function refresh() {
   try {
