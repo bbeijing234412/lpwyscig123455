@@ -76,6 +76,13 @@
       "tagLine": "chud",
       "region": "europe",
       "platform": "eun1"
+    },
+    {
+      "nickname": "piechocki",
+      "gameName": "galaxywar223",
+      "tagLine": "EUNE",
+      "region": "europe",
+      "platform": "eun1"
     }
   ]
 }
